@@ -47,6 +47,7 @@ class Field:
     def put_bombs(self, n_bombs: int, safe_x: int, safe_y: int) -> None:
         if n_bombs >= mul(*self.size):
             raise TooManyBombs(f"{n_bombs = }, {self.size = }")
+        self.left = mul(*self.size) - n_bombs
         cells_coords = list(product(range(self.width), range(self.height)))
         n = 0
         for x, y in sample(cells_coords, k=n_bombs+1):
@@ -66,6 +67,7 @@ class Field:
         if cell.bomb:
             return True
         cell.open = True
+        self.left -= 1
         if not cell.near:
             for n_y, n_x in self.neighs(x, y):
                 self.open(n_x, n_y)

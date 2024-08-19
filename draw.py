@@ -30,12 +30,19 @@ class Drawer:
         if self.field.open(x, y):
             self.over()
         self.update()
+        if not self.field.left:
+            self.win()
     
     def update(self):
         for y in range(self.field.height):
             for x in range(self.field.width):
                 self.buttons[y][x].config(text=str(self.field.field[y, x]))
                 self.buttons[y][x].update_idletasks()
+    
+    def win(self):
+        print("Win!")
+        messagebox.showinfo("Congrac!",  "Congrac! You won!")
+        self.app.quit()
     
     def over(self):
         print("Gameover!")
