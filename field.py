@@ -1,3 +1,4 @@
+from enum import Enum
 from itertools import product
 from operator import mul
 from random import sample, seed
@@ -10,6 +11,20 @@ Pos = tuple[int, int]
 class TooManyBombs(BaseException):
     """Too many bombs for this field size"""
 
+class CellType(Enum):
+    Marked = "!"
+    Empty = " "
+    Hidden = "#"
+    Bomd = "*"
+    Digit1 = "1"
+    Digit2 = "2"
+    Digit3 = "3"
+    Digit4 = "4"
+    Digit5 = "5"
+    Digit6 = "6"
+    Digit7 = "7"
+    Digit8 = "8"
+
 class Cell:
     
     def __init__(self) -> None:
@@ -18,16 +33,19 @@ class Cell:
         self.bomb = False
         self.near = 0
     
-    def __repr__(self) -> str:
+    def type(self) -> CellType:
         if self.marked:
-            return "!"
+            return CellType.Marked
         if not self.open:
-            return "#"
+            return CellType.Hidden
         if self.bomb:
-            return "*"
+            return CellType.Bomd
         if self.near:
-            return str(self.near)
-        return "_"
+            return CellType(str(self.near))
+        return CellType.Empty
+    
+    def __repr__(self) -> str:
+        return self.type().value
 
 class Field:
     

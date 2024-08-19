@@ -1,8 +1,8 @@
 import tkinter as tk
-from tkinter import messagebox
 from functools import partial
+from tkinter import messagebox
 
-from field import Field
+from field import CellType, Field
 
 
 class Drawer:
@@ -44,8 +44,17 @@ class Drawer:
     def update(self):
         for y in range(self.field.height):
             for x in range(self.field.width):
-                self.buttons[y][x].config(text=str(self.field.field[y, x]))
-                self.buttons[y][x].update_idletasks()
+                self.update_button(x, y, self.field.field[y, x].type())
+    
+    def update_button(self, x: int, y: int, cell: CellType) -> None:
+        button = self.buttons[y][x]
+        match cell:
+            case CellType.Bomd | CellType.Marked:
+                bg = "red"
+            case _:
+                bg = "SystemButtonFace"
+        button.config(text=cell.value, bg=bg)
+        button.update_idletasks()
     
     def win(self):
         print("Win!")
