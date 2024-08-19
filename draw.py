@@ -51,6 +51,8 @@ class Drawer:
         match cell:
             case CellType.Bomd | CellType.Marked:
                 bg = "red"
+            case CellType.Hidden:
+                bg = "gray"
             case _:
                 bg = "SystemButtonFace"
         button.config(text=cell.value, bg=bg)

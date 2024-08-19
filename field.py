@@ -153,8 +153,3 @@ if __name__ == "__main__":
     field.open(0, 0)
     
     print(field)
-    
-    print(field.field[0, 2].oleg())
-    # field.open_all()
-
-
