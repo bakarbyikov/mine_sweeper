@@ -10,13 +10,14 @@ class Drawer:
     def __init__(self) -> None:
         self.new = True
         self.field = Field(10, 10)
+        font = ("Terminal", 20, "bold")
         self.app = tk.Tk()
         
         self.buttons = list()
         for y in range(self.field.height):
             self.buttons.append(list())
             for x in range(self.field.width):
-                button = tk.Button(self.app, width=2, height=1, text=" ",
+                button = tk.Button(self.app, text=" ", font=font,
                                    command=partial(self.onButtonClick, x, y))
                 button.grid(column=x, row=y)
                 button.bind("<Button-3>", partial(self.mark, x, y))
@@ -36,6 +37,8 @@ class Drawer:
             self.over()
         self.update()
         if not self.field.left:
+            self.field.open_all()
+            self.update()
             self.win()
     
     def update(self):
@@ -51,7 +54,7 @@ class Drawer:
     
     def over(self):
         print("Gameover!")
-        messagebox.showinfo("Game Over!",  "Game Over!")
+        messagebox.showinfo("Game Over!",  "You lost!")
         self.app.quit()
 
 if __name__ == "__main__":
