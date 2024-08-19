@@ -63,7 +63,7 @@ class Field:
                 continue
             if not 0 <= n_x < self.width:
                 continue
-            yield n_y, n_x
+            yield n_x, n_y
     
     def put_bombs(self, n_bombs: int, safe_x: int, safe_y: int) -> None:
         if n_bombs >= mul(*self.size):
@@ -77,28 +77,64 @@ class Field:
             if (x, y) == (safe_x, safe_y):
                 continue
             self.field[y, x].bomb = True
-            for n_y, n_x in self.neighs(x, y):
+            for n_x, n_y in self.neighs(x, y):
                 self.field[n_y, n_x].near += 1
             n += 1
+    
+    def count_closed(self, x: int, y: int) -> int:
+        number = 0
+        for n_x, n_y in self.neighs(x, y):
+            number += not self.field[n_y, n_x].open
+        return number
+    
+    def count_marked(self, x: int, y: int) -> int:
+        number = 0
+        for n_x, n_y in self.neighs(x, y):
+            number += self.field[n_y, n_x].marked
+        return number
+    
+    def mark_around(self, x: int, y: int) -> None:
+        cell = self.field[y, x]
+        n_closed = self.count_closed(x, y)
+        if n_closed != cell.near:
+            return
+        on_off = n_closed != self.count_marked(x, y)
+        for nx, ny in self.neighs(x, y):
+            neigh = self.field[ny, nx]
+            if neigh.open:
+                continue
+            neigh.marked = on_off
     
     def mark(self, x: int, y: int) -> None:
         cell = self.field[y, x]
         if cell.open:
+            self.mark_around(x, y)
             return
         cell.marked = not cell.marked
     
-    def open(self, x: int, y: int) -> bool:
+    def open_around(self, x: int, y: int) -> bool:
         cell = self.field[y, x]
-        if cell.marked:
-            return False
+        if self.count_marked(x, y) != cell.near:
+            return
+        blown = False
+        for nx, ny in self.neighs(x, y):
+            blown |= self.open(nx, ny, around=False)
+        return blown
+    
+    def open(self, x: int, y: int, around=True) -> bool:
+        cell = self.field[y, x]
         if cell.open:
+            if around:
+                return self.open_around(x, y)
+            return False
+        if cell.marked:
             return False
         if cell.bomb:
             return True
         cell.open = True
         self.left -= 1
         if not cell.near:
-            for n_y, n_x in self.neighs(x, y):
+            for n_x, n_y in self.neighs(x, y):
                 self.open(n_x, n_y)
         return False
     
