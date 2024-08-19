@@ -5,25 +5,24 @@ from tkinter import messagebox
 from field import CellType, Field
 
 
-class Drawer:
+class Drawer(tk.Frame):
     
-    def __init__(self) -> None:
+    def __init__(self, master) -> None:
+        super().__init__(master)
         self.new = True
         self.field = Field(10, 10)
         font = ("Terminal", 20, "bold")
-        self.app = tk.Tk()
         
         self.buttons = list()
         for y in range(self.field.height):
             self.buttons.append(list())
             for x in range(self.field.width):
-                button = tk.Button(self.app, text=" ", font=font,
+                button = tk.Button(self.master, font=font,
                                    command=partial(self.onButtonClick, x, y))
                 button.grid(column=x, row=y)
                 button.bind("<Button-3>", partial(self.mark, x, y))
                 self.buttons[-1].append(button)
-        
-        self.app.mainloop()
+        self.update()
     
     def mark(self, x: int, y: int, *_):
         self.field.mark(x, y)
@@ -34,7 +33,7 @@ class Drawer:
             self.field.put_bombs(10, x, y)
             self.new = False
         if self.field.open(x, y):
-            self.over()
+            self.lost()
         self.update()
         if not self.field.left:
             self.field.open_all()
@@ -45,6 +44,7 @@ class Drawer:
         for y in range(self.field.height):
             for x in range(self.field.width):
                 self.update_button(x, y, self.field.field[y, x].type())
+        self.update_idletasks()
     
     def update_button(self, x: int, y: int, cell: CellType) -> None:
         button = self.buttons[y][x]
@@ -56,17 +56,23 @@ class Drawer:
             case _:
                 bg = "SystemButtonFace"
         button.config(text=cell.value, bg=bg)
-        button.update_idletasks()
     
     def win(self):
         print("Win!")
         messagebox.showinfo("Congrac!",  "Congrac! You won!")
-        self.app.quit()
+        self.over()
     
-    def over(self):
+    def lost(self):
         print("Gameover!")
         messagebox.showinfo("Game Over!",  "You lost!")
-        self.app.quit()
+        self.over()
+    
+    def over(self):
+        self.new = True
+        self.field.reset()
+        self.update()
 
 if __name__ == "__main__":
-    app = Drawer()
+    app = tk.Tk()
+    Drawer(app).grid()
+    app.mainloop()

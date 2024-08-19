@@ -28,6 +28,9 @@ class CellType(Enum):
 class Cell:
     
     def __init__(self) -> None:
+        self.reset()
+    
+    def reset(self) -> None:
         self.marked = False
         self.open = False
         self.bomb = False
@@ -64,6 +67,9 @@ class Field:
             if not 0 <= n_x < self.width:
                 continue
             yield n_x, n_y
+    
+    def reset(self) -> None:
+        list(map(Cell.reset, self.field.flatten()))
     
     def put_bombs(self, n_bombs: int, safe_x: int, safe_y: int) -> None:
         if n_bombs >= mul(*self.size):
