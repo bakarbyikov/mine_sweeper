@@ -13,11 +13,14 @@ class TooManyBombs(BaseException):
 class Cell:
     
     def __init__(self) -> None:
+        self.marked = False
         self.open = False
         self.bomb = False
         self.near = 0
     
     def __repr__(self) -> str:
+        if self.marked:
+            return "!"
         if not self.open:
             return "#"
         if self.bomb:
@@ -60,8 +63,16 @@ class Field:
                 self.field[n_y, n_x].near += 1
             n += 1
     
+    def mark(self, x: int, y: int) -> None:
+        cell = self.field[y, x]
+        if cell.open:
+            return
+        cell.marked = not cell.marked
+    
     def open(self, x: int, y: int) -> bool:
         cell = self.field[y, x]
+        if cell.marked:
+            return False
         if cell.open:
             return False
         if cell.bomb:

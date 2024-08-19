@@ -19,9 +19,14 @@ class Drawer:
                 button = tk.Button(self.app, width=2, height=1, text=" ",
                                    command=partial(self.onButtonClick, x, y))
                 button.grid(column=x, row=y)
+                button.bind("<Button-3>", partial(self.mark, x, y))
                 self.buttons[-1].append(button)
         
         self.app.mainloop()
+    
+    def mark(self, x: int, y: int, *_):
+        self.field.mark(x, y)
+        self.update()
 
     def onButtonClick(self, x: int, y: int):
         if self.new:
