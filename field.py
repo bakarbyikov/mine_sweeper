@@ -34,9 +34,6 @@ class State(Enum):
 class Cell:
     
     def __init__(self) -> None:
-        self.reset()
-    
-    def reset(self) -> None:
         self.marked = False
         self.open = False
         self.bomb = False
@@ -76,11 +73,10 @@ class Field:
             if not 0 <= n_x < self.width:
                 continue
             yield n_x, n_y
-    
+
     def reset(self) -> None:
         self.__init__(self.width, self.height, self.n_bombs)
-        # list(map(Cell.reset, self.field.flatten()))
-    
+
     def put_bombs(self, safe_x: int, safe_y: int) -> None:
         if self.n_bombs >= mul(*self.size):
             raise TooManyBombs(f"{self.n_bombs = }, {self.size = }")
@@ -97,31 +93,18 @@ class Field:
                 self.field[n_y, n_x].near += 1
             n += 1
     
-    def count_closed(self, x: int, y: int) -> int:
-        number = 0
-        for n_x, n_y in self.neighs(x, y):
-            number += not self.field[n_y, n_x].open
-        return number
-    
-    def count_marked(self, x: int, y: int) -> int:
-        number = 0
-        for n_x, n_y in self.neighs(x, y):
-            number += self.field[n_y, n_x].marked
-        return number
-    
-    def mark_around(self, x: int, y: int) -> None:
-        cell = self.field[y, x]
-        n_closed = self.count_closed(x, y)
-        if n_closed != cell.near:
-            return
-        on_off = n_closed != self.count_marked(x, y)
+    def mark_around(self, x: int, y: int, is_set=False) -> None:
+        changed = 0
         for nx, ny in self.neighs(x, y):
             neigh = self.field[ny, nx]
             if neigh.open:
                 continue
-            neigh.marked = on_off
+            changed += neigh.marked == is_set
+            neigh.marked = not is_set
+        if not changed and not is_set:
+            self.mark_around(x, y, True)
     
-    def mark(self, x: int, y: int) -> None:
+    def onMark(self, x: int, y: int) -> None:
         cell = self.field[y, x]
         if cell.open:
             self.mark_around(x, y)
@@ -132,7 +115,6 @@ class Field:
         if (self.state is State.Win
             or self.state is State.Lost):
             self.reset()
-            self.state = State.New
             return
         if self.state is State.New:
             self.put_bombs(x, y)
@@ -146,29 +128,26 @@ class Field:
             self.open_all()
     
     def open_around(self, x: int, y: int) -> bool:
-        cell = self.field[y, x]
-        if self.count_marked(x, y) != cell.near:
-            return
         blown = False
         for nx, ny in self.neighs(x, y):
-            blown |= self.open(nx, ny, around=False)
+            if self.field[ny, nx].open:
+                continue
+            blown |= self.open(nx, ny)
         return blown
     
-    def open(self, x: int, y: int, around=True) -> bool:
+    def open(self, x: int, y: int) -> bool:
         cell = self.field[y, x]
         if cell.open:
-            if around:
-                return self.open_around(x, y)
-            return False
+            return self.open_around(x, y)
         if cell.marked:
             return False
         if cell.bomb:
             return True
         cell.open = True
         self.left -= 1
+        # open around if cell is zero
         if not cell.near:
-            for n_x, n_y in self.neighs(x, y):
-                self.open(n_x, n_y)
+            assert not self.open_around(x, y), f"No way! {x, y = }"
         return False
     
     def open_all(self):

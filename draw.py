@@ -1,11 +1,10 @@
 import tkinter as tk
-from functools import partial
 from tkinter import Misc
 
 from field import CellType, Field
 
 
-def wraper(f, x, y, *_):
+def wrapper(f, x, y, *_):
     def inner(*_):
         return f(x, y)
     return inner
@@ -22,9 +21,9 @@ class Drawer(tk.Frame):
             self.buttons.append(list())
             for x in range(self.field.width):
                 button = tk.Button(self, font=font,
-                                   command=partial(onOpen, x, y))
+                                   command=wrapper(onOpen, x, y))
                 button.grid(column=x, row=y)
-                button.bind("<Button-3>", wraper(onMark, x, y))
+                button.bind("<Button-3>", wrapper(onMark, x, y))
                 self.buttons[-1].append(button)
         self.update()
     
@@ -44,3 +43,18 @@ class Drawer(tk.Frame):
             case _:
                 bg = "SystemButtonFace"
         button.config(text=cell.value, bg=bg)
+
+if __name__ == "__main__":
+    game = Field(10, 10, 10)
+    root = tk.Tk()
+    
+    def onOpen(*args):
+        game.onOpen(*args)
+        drawer.update()
+    def onMark(*args):
+        game.onMark(*args)
+        drawer.update()
+    
+    drawer = Drawer(root, game, onOpen, onMark)
+    drawer.grid()
+    root.mainloop()

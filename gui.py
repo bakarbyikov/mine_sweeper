@@ -37,7 +37,7 @@ class App(tk.Frame):
                                           .format(self.game.state))
     
     def onMark(self, x: int, y: int) -> None:
-        self.game.mark(x, y)
+        self.game.onMark(x, y)
         self.drawer.update()
     
     def win(self):
