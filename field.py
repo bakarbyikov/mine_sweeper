@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from itertools import product
 from operator import mul
 from random import sample, seed
@@ -24,6 +24,12 @@ class CellType(Enum):
     Digit6 = "6"
     Digit7 = "7"
     Digit8 = "8"
+
+class State(Enum):
+    New = auto()
+    Win = auto()
+    Lost = auto()
+    Normal = auto()
 
 class Cell:
     
@@ -52,10 +58,13 @@ class Cell:
 
 class Field:
     
-    def __init__(self, width: int, height: int) -> None:
+    def __init__(self, width: int, height: int, n_bombs: int) -> None:
         self.size = self.width, self.height = width, height
         self.field = np.array([[Cell() for _ in range(self.width)] 
                                for _ in range(self.height)])
+        self.state = State.New
+        self.n_bombs = n_bombs
+        self.left = None
     
     def neighs(self, x: int, y: int) -> Generator[Pos, None, None]:
         for o_y, o_x in product(range(-1, 2), repeat=2):
@@ -69,16 +78,17 @@ class Field:
             yield n_x, n_y
     
     def reset(self) -> None:
-        list(map(Cell.reset, self.field.flatten()))
+        self.__init__(self.width, self.height, self.n_bombs)
+        # list(map(Cell.reset, self.field.flatten()))
     
-    def put_bombs(self, n_bombs: int, safe_x: int, safe_y: int) -> None:
-        if n_bombs >= mul(*self.size):
-            raise TooManyBombs(f"{n_bombs = }, {self.size = }")
-        self.left = mul(*self.size) - n_bombs
+    def put_bombs(self, safe_x: int, safe_y: int) -> None:
+        if self.n_bombs >= mul(*self.size):
+            raise TooManyBombs(f"{self.n_bombs = }, {self.size = }")
+        self.left = mul(*self.size) - self.n_bombs
         cells_coords = list(product(range(self.width), range(self.height)))
         n = 0
-        for x, y in sample(cells_coords, k=n_bombs+1):
-            if n == n_bombs:
+        for x, y in sample(cells_coords, k=self.n_bombs+1):
+            if n == self.n_bombs:
                 break
             if (x, y) == (safe_x, safe_y):
                 continue
@@ -118,6 +128,23 @@ class Field:
             return
         cell.marked = not cell.marked
     
+    def onOpen(self, x: int, y: int) -> None:
+        if (self.state is State.Win
+            or self.state is State.Lost):
+            self.reset()
+            self.state = State.New
+            return
+        if self.state is State.New:
+            self.put_bombs(x, y)
+            self.state = State.Normal
+        if self.open(x, y):
+            self.state = State.Lost
+            self.open_all()
+            return
+        if not self.left:
+            self.state = State.Win
+            self.open_all()
+    
     def open_around(self, x: int, y: int) -> bool:
         cell = self.field[y, x]
         if self.count_marked(x, y) != cell.near:
@@ -150,12 +177,3 @@ class Field:
     
     def __repr__(self) -> str:
         return str(self.field)
-            
-if __name__ == "__main__":
-    seed(1)
-    w, h = 3, 3
-    field = Field(w, h)
-    field.put_bombs(1, 0, 0)
-    field.open(0, 0)
-    
-    print(field)
