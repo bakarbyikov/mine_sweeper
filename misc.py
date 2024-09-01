@@ -4,15 +4,14 @@ from time import monotonic
 
 class Timer:
     def __init__(self) -> None:
-        self.start_time = None
+        self.start_time = self.now()
         self.elapsed = None
     
     def now(self) -> float:
         return monotonic()
     
     def start(self) -> None:
-        self.start_time = self.now()
-        print(f"start! {self.start_time}")
+        self.__init__()
     
     def passed(self) -> timedelta:
         return (self.elapsed 
@@ -20,7 +19,6 @@ class Timer:
     
     def stop(self) -> None:
         self.elapsed = self.passed()
-        print(f"stop! {self.now()}")
 
 if __name__ == "__main__":
     from time import sleep
