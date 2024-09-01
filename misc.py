@@ -17,6 +17,9 @@ class Timer:
         return (self.elapsed 
                 or timedelta(seconds=self.now()-self.start_time))
     
+    def passed_whole(self) -> timedelta:
+        return timedelta(seconds=int(self.passed().total_seconds()))
+    
     def stop(self) -> None:
         self.elapsed = self.passed()
 
