@@ -3,6 +3,7 @@ from tkinter import Misc, messagebox
 
 from draw import Drawer
 from field import Field, State
+from misc import Timer
 
 
 class App(tk.Frame):
@@ -13,6 +14,7 @@ class App(tk.Frame):
         self.master.grid_columnconfigure(0, weight=1)
         self.master.grid_rowconfigure(0, weight=1)
         
+        self.timer = Timer()
         self.gui = MainMenu(self)
         self.gui.grid()
     
@@ -23,14 +25,20 @@ class App(tk.Frame):
         self.drawer.grid()
     
     def onOpen(self, x: int, y: int) -> None:
+        if self.game.state is State.New:
+            self.timer.start()
+        
         self.game.onOpen(x, y)
         self.drawer.update()
+        
         match self.game.state:
             case State.New | State.Normal:
                 pass
             case State.Win:
+                self.timer.stop()
                 self.win()
             case State.Lost:
+                self.timer.stop()
                 self.lost()
             case _:
                 raise NotImplementedError("Unknown field state {}"
@@ -42,12 +50,14 @@ class App(tk.Frame):
     
     def win(self):
         print("Win!")
-        messagebox.showinfo("Congrac!",  "Congrac! You won!")
+        messagebox.showinfo("Congrac!", 
+                            f"You won! Your time {self.timer.passed()}")
         self.game_over()
     
     def lost(self):
         print("Gameover!")
-        messagebox.showinfo("Game Over!",  "You lost!")
+        messagebox.showinfo("Game Over!",  
+                            f"You lost! Your time {self.timer.passed()}")
         self.game_over()
         
     def game_over(self) -> None:
